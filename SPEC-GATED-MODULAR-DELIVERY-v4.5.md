@@ -428,6 +428,8 @@ condition fires. **No loop without a loop spec.**
   cadence · Context strategy (fresh-per-pass vs accumulated, with a rot-reset rule)
   · Escalation triggers · Kill switch (a command, not a hope).
 - **Required only for projects that run loops** (`conditional: loops`).
+- **After a loop terminates, run `prompts/loop-debrief.md` before editing the spec** —
+  one verdict, one evidence-backed minimal amendment; material findings feed the retro (§23.2).
 - **Red flags:** no verifiable stop condition; the loop grading its own homework;
   unbounded budget; a loop crossing a stage boundary without a checkpoint; the runner
   editing its own spec or budget.
@@ -817,6 +819,7 @@ Context-Loading Protocol §10.1, made mechanical), `output` (artifact produced).
 | `worker-task.md` | Agent Orchestration | the standard worker briefing |
 | `merge-reviewer.md` | Agent Orchestration | diff verdict vs module contract + spec-delta check |
 | `loop-pass.md` | Loop Engineering | one loop pass: increment → verify → runlog → stop-check |
+| `loop-debrief.md` | Loop Engineering | post-termination debrief: verdict + one minimal spec amendment |
 
 ---
 
