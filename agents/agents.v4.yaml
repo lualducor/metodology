@@ -1,0 +1,176 @@
+schema_version: 4
+release: '4.6'
+execution: optional; roles do not grant runtime permissions
+agents:
+- id: orchestrator
+  role: Plan, scope and integrate reviewed work
+  default_runtime: any
+  stages:
+  - problem
+  - vertical_slice
+  - build
+  inputs:
+  - agent_run
+  - architecture_note
+  - failure_log
+  - loop_spec
+  - module_contract
+  - problem_brief
+  - product_spec
+  - vertical_slice
+  outputs:
+  - build_task
+  - decision_log
+  - vertical_slice
+  prompts:
+  - slice-cutter
+  - orchestrator-decompose
+  - loop-debrief
+  must_not:
+  - bulk-dispatch beyond review capacity
+  - merge unreviewed work
+  - waive red blockers
+  escalates_to: human
+- id: spec-writer
+  role: Draft evidenced problems and criteria
+  default_runtime: any
+  stages:
+  - problem
+  - spec
+  inputs:
+  - problem_brief
+  - raw_idea_note
+  outputs:
+  - problem_brief
+  - product_spec
+  prompts:
+  - problem-interrogator
+  - spec-writer
+  must_not:
+  - invent untraceable requirements
+  - claim human approval
+  escalates_to: human
+- id: architect
+  role: Design boundaries and tradeoffs
+  default_runtime: any
+  stages:
+  - architecture
+  - module_design
+  inputs:
+  - architecture_note
+  - problem_brief
+  - product_spec
+  outputs:
+  - architecture_note
+  - module_contract
+  prompts:
+  - architecture-options
+  - module-contractor
+  must_not:
+  - choose complexity without rationale
+  - silently change acceptance criteria
+  escalates_to: human
+- id: builder
+  role: Implement one scoped task
+  default_runtime: any
+  stages:
+  - build
+  inputs:
+  - build_task
+  - module_contract
+  - product_spec
+  outputs:
+  - agent_run
+  prompts:
+  - worker-task
+  must_not:
+  - touch files outside scope
+  - change protected criteria or verifiers
+  - push, merge or deploy
+  escalates_to: human
+- id: verifier
+  role: Assess behavior and release evidence
+  default_runtime: any
+  stages:
+  - verify
+  - harden
+  inputs:
+  - agent_run
+  - infrastructure_note
+  - module_contract
+  - product_spec
+  - test_plan
+  outputs:
+  - agent_run
+  - production_readiness
+  - test_plan
+  prompts:
+  - verify-qa
+  - harden-auditor
+  - merge-reviewer
+  must_not:
+  - independently approve its own implementation
+  - weaken acceptance criteria
+  - fabricate test results
+  escalates_to: human
+- id: devops
+  role: Prepare delivery and recovery artifacts
+  default_runtime: any
+  stages:
+  - architecture
+  - harden
+  - ship
+  inputs:
+  - architecture_note
+  - test_plan
+  - infrastructure_note
+  outputs:
+  - infrastructure_note
+  - production_readiness
+  - release_notes
+  prompts: []
+  must_not:
+  - read secrets into model context
+  - deploy without explicit authorization
+  - omit recovery checks
+  escalates_to: human
+- id: loop-runner
+  role: Execute one bounded loop pass
+  default_runtime: any
+  stages:
+  - build
+  inputs:
+  - build_task
+  - loop_spec
+  outputs:
+  - agent_run
+  prompts:
+  - loop-pass
+  must_not:
+  - alter frozen spec or limits
+  - alter protected verifier
+  - continue after a stop condition
+  escalates_to: human
+- id: librarian
+  role: Maintain traceable records
+  default_runtime: any
+  stages:
+  - ship
+  - observe
+  inputs:
+  - decision_log
+  - failure_log
+  - observation_entry
+  - problem_brief
+  - release_notes
+  outputs:
+  - observation_entry
+  - retro
+  prompts:
+  - observe-synthesizer
+  - retro-writer
+  must_not:
+  - rewrite historical evidence
+  - fabricate catches or reviews
+  - close human gates
+  escalates_to: human

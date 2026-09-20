@@ -1,524 +1,816 @@
-# SPEC-GATED MODULAR DELIVERY v4 — machine-readable spec
-# Single source of truth the localhost dashboard renders from.
-# Must stay in sync with SPEC-GATED-MODULAR-DELIVERY-v4.5.md (enforced by a test).
-# v4.5 changed no stages/tiers/gates — this YAML spine is still v4. Artifact set
-# is amended additively; every change is recorded in `amendments:` below.
-# Severity legend: red = blocker, orange = override+expiry, yellow = advisory.
-# Field `conditional:` on an artifact = required only when the project uses that
-# capability (agent_workers | loops). Inert to the current loader (unknown keys
-# are ignored); honored by phase-2 dashboard enforcement.
-
+# Canonical policy and artifact manifest. Schema version 4; release version below.
+# Stable gate IDs must not be reused. No dashboard or automatic approval is required.
 version: 4
-title: "SPEC-GATED MODULAR DELIVERY"
-methodology_doc: "SPEC-GATED-MODULAR-DELIVERY-v4.5.md"
-templates_dir: "templates"
-
-# Versioned methodology amendments (route Decision #4). Additive, append-only.
-# Each entry records a manifest change so a diff is never anonymous.
+title: SPEC-GATED MODULAR DELIVERY
+methodology_doc: SPEC-GATED-MODULAR-DELIVERY-v4.6.md
+templates_dir: templates
 amendments:
-  - id: "v4.5-a1"
-    date: "2026-07-23"
-    change: "Register `premortem` (go_no_go, §6.2) and `retro` (ship, §23.2) as
-      first-class artifacts. Both were defined in v4.5 prose but omitted from the
-      manifest; this brings the artifact set into sync with the doctrine. New
-      template: premortem.md. No stage/tier/gate change."
-    wave: "EX7"
-
-# ----------------------------------------------------------------------------
-# TIERS — decide which stages are mandatory and what gates check.
-# ----------------------------------------------------------------------------
+- id: v4.5-a1
+  date: '2026-07-23'
+  change: 'Register `premortem` (go_no_go, §6.2) and `retro` (ship, §23.2) as first-class artifacts. Both
+    were defined in v4.5 prose but omitted from the manifest; this brings the artifact set into sync with
+    the doctrine. New template: premortem.md. No stage/tier/gate change.'
+  wave: EX7
+- id: v4.6
+  date: '2026-09-19'
+  change: 'Standalone release: shipped resources, Slim profile, stable gate IDs, presence-based decisions,
+    non-overridable blockers, and local validation. Dashboard metadata and health scores removed.'
 tiers:
-  - id: spike
-    name: "Spike"
-    scope: "One-off experiment / throwaway"
-    effort_cap_hours: 8
-  - id: slim
-    name: "Slim"
-    scope: "Small useful project, single-user"
-    effort_cap_hours: 40
-  - id: serious
-    name: "Serious"
-    scope: "Used daily, possibly by others"
-    effort_cap_hours: null
-  - id: mission_critical
-    name: "Mission-critical"
-    scope: "Money, health, security, regulated data, others' livelihoods"
-    effort_cap_hours: null
-
-# ----------------------------------------------------------------------------
-# STAGES — ordered lifecycle. go_no_go is a gate pseudo-stage (no artifacts dir).
-# requirement per tier: required | light | implicit | merged | skipped
-# ----------------------------------------------------------------------------
+- id: spike
+  name: Spike
+  scope: One-off experiment / throwaway
+  effort_cap_hours: 8
+- id: slim
+  name: Slim
+  scope: Small useful project, single-user
+  effort_cap_hours: 40
+- id: serious
+  name: Serious
+  scope: Used daily, possibly by others
+  effort_cap_hours: null
+- id: mission_critical
+  name: Mission-critical
+  scope: Money, health, security, regulated data, others' livelihoods
+  effort_cap_hours: null
 stages:
-  - id: capture
-    order: 1
-    name: "CAPTURE"
-    backtrack: null
-    next: problem
-    per_tier: { spike: required, slim: required, serious: required, mission_critical: required }
-  - id: problem
-    order: 2
-    name: "PROBLEM"
-    backtrack: capture
-    next: spec
-    per_tier: { spike: required, slim: required, serious: required, mission_critical: required }
-  - id: spec
-    order: 3
-    name: "SPEC"
-    backtrack: problem
-    next: architecture
-    per_tier: { spike: implicit, slim: light, serious: required, mission_critical: required }
-  - id: architecture
-    order: 4
-    name: "ARCHITECTURE"
-    backtrack: spec
-    next: module_design
-    per_tier: { spike: skipped, slim: merged, serious: required, mission_critical: required }
-  - id: module_design
-    order: 5
-    name: "MODULE DESIGN"
-    backtrack: architecture
-    next: vertical_slice
-    per_tier: { spike: skipped, slim: merged, serious: required, mission_critical: required }
-  - id: vertical_slice
-    order: 6
-    name: "VERTICAL SLICE"
-    aliases: ["MVP SLICE"]
-    backtrack: problem
-    next: go_no_go
-    per_tier: { spike: required, slim: required, serious: required, mission_critical: required }
-  - id: go_no_go
-    order: 7
-    name: "GO / NO-GO"
-    gate_only: true
-    backtrack: vertical_slice
-    next: build
-    per_tier: { spike: light, slim: required, serious: required, mission_critical: required }
-  - id: build
-    order: 8
-    name: "BUILD"
-    continuous_verification: true
-    backtrack: module_design
-    next: verify
-    per_tier: { spike: required, slim: required, serious: required, mission_critical: required }
-  - id: verify
-    order: 9
-    name: "VERIFY"
-    backtrack: build
-    next: harden
-    per_tier: { spike: post_mortem, slim: required, serious: required, mission_critical: required }
-  - id: harden
-    order: 10
-    name: "HARDEN"
-    backtrack: build
-    next: ship
-    per_tier: { spike: skipped, slim: light, serious: required, mission_critical: required }
-  - id: ship
-    order: 11
-    name: "SHIP"
-    backtrack: harden
-    next: observe
-    per_tier: { spike: informal, slim: required, serious: required, mission_critical: required }
-  - id: observe
-    order: 12
-    name: "OBSERVE"
-    backtrack: null
-    next: iteration
-    per_tier: { spike: post_mortem, slim: required, serious: required, mission_critical: required }
-
-# ----------------------------------------------------------------------------
-# ARTIFACT COVERAGE MANIFEST
-# Every document v3 prescribes. The dashboard MUST provide a view + scaffold
-# for each id below (integral-coverage self-check fails otherwise).
-# multiple: true => one file per instance under a directory.
-# ----------------------------------------------------------------------------
+- id: capture
+  order: 1
+  name: CAPTURE
+  backtrack: null
+  next: problem
+  per_tier:
+    spike: required
+    slim: required
+    serious: required
+    mission_critical: required
+- id: problem
+  order: 2
+  name: PROBLEM
+  backtrack: capture
+  next: spec
+  per_tier:
+    spike: required
+    slim: required
+    serious: required
+    mission_critical: required
+- id: spec
+  order: 3
+  name: SPEC
+  backtrack: problem
+  next: architecture
+  per_tier:
+    spike: implicit
+    slim: light
+    serious: required
+    mission_critical: required
+- id: architecture
+  order: 4
+  name: ARCHITECTURE
+  backtrack: spec
+  next: module_design
+  per_tier:
+    spike: skipped
+    slim: merged
+    serious: required
+    mission_critical: required
+- id: module_design
+  order: 5
+  name: MODULE DESIGN
+  backtrack: architecture
+  next: vertical_slice
+  per_tier:
+    spike: skipped
+    slim: merged
+    serious: required
+    mission_critical: required
+- id: vertical_slice
+  order: 6
+  name: VERTICAL SLICE
+  aliases:
+  - MVP SLICE
+  backtrack: problem
+  next: go_no_go
+  per_tier:
+    spike: required
+    slim: required
+    serious: required
+    mission_critical: required
+- id: go_no_go
+  order: 7
+  name: GO / NO-GO
+  gate_only: true
+  backtrack: vertical_slice
+  next: build
+  per_tier:
+    spike: light
+    slim: required
+    serious: required
+    mission_critical: required
+- id: build
+  order: 8
+  name: BUILD
+  continuous_verification: true
+  backtrack: module_design
+  next: verify
+  per_tier:
+    spike: required
+    slim: required
+    serious: required
+    mission_critical: required
+- id: verify
+  order: 9
+  name: VERIFY
+  backtrack: build
+  next: harden
+  per_tier:
+    spike: post_mortem
+    slim: required
+    serious: required
+    mission_critical: required
+- id: harden
+  order: 10
+  name: HARDEN
+  backtrack: build
+  next: ship
+  per_tier:
+    spike: skipped
+    slim: light
+    serious: required
+    mission_critical: required
+- id: ship
+  order: 11
+  name: SHIP
+  backtrack: harden
+  next: observe
+  per_tier:
+    spike: skipped
+    slim: required
+    serious: required
+    mission_critical: required
+- id: observe
+  order: 12
+  name: OBSERVE
+  backtrack: null
+  next: iteration
+  per_tier:
+    spike: post_mortem
+    slim: required
+    serious: required
+    mission_critical: required
 artifacts:
-  - id: raw_idea_note
-    name: "Raw Idea Note"
-    stage: capture
-    template: "capture.md"
-    destination: "docs/00_meta/capture.md"
-    required_headings: ["Idea", "Pain", "Possible user"]
-    gate_severity: yellow
-    section: lifecycle
-
-  - id: problem_brief
-    name: "Problem Brief"
-    stage: problem
-    template: "problem_brief.md"
-    destination: "docs/01_problem/problem.md"
-    required_headings: ["Target user", "Problem", "Desired outcome", "Success looks like", "Non-goals", "Effort estimate", "Kill criteria"]
-    gate_severity: red
-    section: spec_center
-
-  - id: product_spec
-    name: "Product Spec"
-    stage: spec
-    template: "product_spec.md"
-    destination: "docs/02_spec/spec.md"
-    required_headings: ["Requirements", "Edge cases", "Failure states", "Inputs", "Outputs"]
-    gate_severity: red
-    section: spec_center
-
-  - id: use_case
-    name: "Use Case + Acceptance Criteria"
-    stage: spec
-    template: "use_case.md"
-    destination: "docs/02_spec/use-cases/"
-    multiple: true
-    min_count: 1
-    required_headings: ["Main flow", "Acceptance criteria"]
-    gate_severity: red
-    section: spec_center
-
-  - id: architecture_note
-    name: "Architecture Note"
-    stage: architecture
-    template: "architecture_note.md"
-    destination: "docs/03_architecture/architecture.md"
-    required_headings: ["Data Model", "Storage", "Deployment target", "Security/privacy"]
-    gate_severity: red
-    section: architecture_center
-
-  - id: adr
-    name: "Architecture Decision Record"
-    stage: architecture
-    template: "adr.md"
-    destination: "docs/03_architecture/decisions/"
-    multiple: true
-    min_count: 1
-    min_count_tiers: [serious, mission_critical]
-    required_headings: ["Context", "Decision", "Consequences"]
-    gate_severity: orange
-    section: architecture_center
-
-  - id: module_contract
-    name: "Module Contract"
-    stage: module_design
-    template: "module_contract.md"
-    destination: "docs/04_modules/"
-    multiple: true
-    min_count_tiers: [serious, mission_critical]
-    required_headings: ["Responsibility", "Inputs", "Outputs", "Must not"]
-    gate_severity: red
-    applies_to: [serious, mission_critical]
-    section: module_map
-
-  - id: vertical_slice
-    name: "Vertical Slice"
-    stage: vertical_slice
-    template: "vertical_slice.md"
-    destination: "docs/05_vertical_slice/slice.md"
-    required_headings: ["Out-of-scope", "Critical path", "Definition of done", "Manual fallback", "Effort estimate"]
-    gate_severity: red
-    section: lifecycle
-
-  - id: go_criteria
-    name: "GO Criteria Checklist"
-    stage: go_no_go
-    template: "GO_CRITERIA.md"
-    destination: "docs/00_meta/go-criteria.md"
-    required_headings: ["Problem clarity", "Behavior clarity", "Shape clarity", "Module clarity", "Scope clarity", "AI readiness", "Infrastructure readiness", "Risk & failure readiness"]
-    gate_severity: red
-    section: go_no_go
-
-  - id: premortem
-    name: "Premortem"
-    stage: go_no_go
-    template: "premortem.md"
-    destination: "docs/00_meta/premortem.md"
-    required_headings: ["Scenario", "Failure modes", "Most likely failure", "Mitigations / plan changes", "Residual risks accepted"]
-    gate_severity: orange
-    applies_to: [serious, mission_critical]
-    section: go_no_go
-
-  - id: planning_validation_report
-    name: "Planning Validation Report"
-    stage: go_no_go
-    template: null
-    generated: true
-    destination: "docs/00_meta/"
-    multiple: true
-    gate_severity: red
-    section: go_no_go
-
-  - id: build_task
-    name: "Build Task"
-    stage: build
-    template: "task.md"
-    destination: "docs/00_meta/tasks/"
-    multiple: true
-    required_headings: ["Related use case", "Related module", "Expected outcome", "Status"]
-    gate_severity: orange
-    section: task_radar
-
-  - id: test_plan
-    name: "Test Plan / QA Checklist"
-    stage: verify
-    template: "test_plan.md"
-    destination: "docs/06_verification/test-plan.md"
-    required_headings: ["Critical flows", "Acceptance results", "Regression checklist", "Edge cases"]
-    gate_severity: red
-    section: verify_harden
-
-  - id: production_readiness
-    name: "Production Readiness Checklist"
-    stage: harden
-    template: "production_readiness.md"
-    destination: "docs/06_verification/production-readiness.md"
-    required_headings: ["Error handling", "Secrets", "Logging/observability", "Rollback plan", "Env vars", "Backup/export", "Performance budget"]
-    gate_severity: red
-    section: verify_harden
-
-  - id: release_notes
-    name: "Release Notes"
-    stage: ship
-    template: "release_notes.md"
-    destination: "docs/07_release/release-notes.md"
-    required_headings: ["What shipped", "Known limitations", "Rollback instructions", "Deployment notes"]
-    gate_severity: red
-    section: ship_readiness
-
-  - id: known_limitations
-    name: "Known Limitations"
-    stage: ship
-    template: "known_limitations.md"
-    destination: "docs/07_release/known-limitations.md"
-    required_headings: ["Known limitations"]
-    gate_severity: orange
-    section: ship_readiness
-
-  - id: retro
-    name: "Methodology Retro"
-    stage: ship
-    template: "retro.md"
-    destination: "docs/00_meta/retro.md"
-    required_headings: ["Outcome", "Estimate vs actual", "What the process caught", "What it missed", "The one rule to change"]
-    gate_severity: orange
-    section: ship_readiness
-
-  - id: observation_entry
-    name: "Observation Entry"
-    stage: observe
-    template: "observation_entry.md"
-    destination: "docs/08_observation/"
-    multiple: true
-    required_headings: ["Feedback/bug/metric", "Action needed", "Next iteration candidate"]
-    gate_severity: orange
-    section: observe
-
-  # --- cross-cutting registries (present at every stage) ---
-  - id: decision_log
-    name: "Decision Log"
-    stage: cross_cutting
-    template: "decision_log_entry.md"
-    destination: "docs/decisions.md"
-    append_only: true
-    gate_severity: orange
-    section: decision_log
-
-  - id: failure_log
-    name: "Failure Log"
-    stage: cross_cutting
-    template: "failure_log_entry.md"
-    destination: "docs/failures.md"
-    append_only: true
-    gate_severity: yellow
-    section: failure_log
-
-  - id: risk_log
-    name: "Risk Radar"
-    stage: cross_cutting
-    template: "risk_entry.md"
-    destination: "docs/risks.md"
-    append_only: true
-    gate_severity: orange
-    section: risk_radar
-
-  - id: ai_session
-    name: "AI Session Log"
-    stage: cross_cutting
-    template: "ai_session.md"
-    destination: "docs/99_ai-sessions/"
-    multiple: true
-    gate_severity: red
-    section: ai_sessions
-
-  - id: infrastructure_note
-    name: "Infrastructure Note"
-    stage: architecture
-    template: "infrastructure_note.md"
-    destination: "docs/03_architecture/infrastructure.md"
-    required_headings: ["Deploy target", "Environments & env vars", "CI pipeline", "Secrets handling", "Backup & restore", "Monitoring & alerts", "Cost ceiling"]
-    gate_severity: orange
-    applies_to: [slim, serious, mission_critical]
-    section: architecture_center
-
-  - id: agent_run
-    name: "Agent Run Log"
-    stage: cross_cutting
-    template: "agent_run.md"
-    destination: "docs/09_agents/runs/"
-    multiple: true
-    conditional: agent_workers
-    required_headings: ["Agent", "Task", "Scope", "Result", "Review verdict"]
-    gate_severity: red
-    section: agent_ops
-
-  - id: loop_spec
-    name: "Loop Spec"
-    stage: cross_cutting
-    template: "loop_spec.md"
-    destination: "docs/09_agents/loops/"
-    multiple: true
-    conditional: loops
-    required_headings: ["Goal", "Stop conditions", "Per-pass verification", "Checkpoint cadence", "Context strategy", "Escalation triggers", "Kill switch"]
-    gate_severity: red
-    section: agent_ops
-
-# ----------------------------------------------------------------------------
-# GATES — per-stage items with severity (mirrors v3 §6.1).
-# ----------------------------------------------------------------------------
+- id: raw_idea_note
+  name: Raw Idea Note
+  stage: capture
+  template: capture.md
+  destination: docs/00_meta/capture.md
+  required_headings:
+  - Idea
+  - Pain
+  - Possible user
+  gate_severity: yellow
+- id: problem_brief
+  name: Problem Brief
+  stage: problem
+  template: problem_brief.md
+  destination: docs/01_problem/problem.md
+  required_headings:
+  - Target user
+  - Problem
+  - Desired outcome
+  - Success looks like
+  - Non-goals
+  - Effort estimate
+  - Kill criteria
+  gate_severity: red
+- id: product_spec
+  name: Product Spec
+  stage: spec
+  template: product_spec.md
+  destination: docs/02_spec/spec.md
+  required_headings:
+  - Requirements
+  - Edge cases
+  - Failure states
+  - Inputs
+  - Outputs
+  gate_severity: red
+- id: use_case
+  name: Use Case + Acceptance Criteria
+  stage: spec
+  template: use_case.md
+  destination: docs/02_spec/use-cases/
+  multiple: true
+  min_count: 1
+  required_headings:
+  - Main flow
+  - Acceptance criteria
+  gate_severity: red
+- id: architecture_note
+  name: Architecture Note
+  stage: architecture
+  template: architecture_note.md
+  destination: docs/03_architecture/architecture.md
+  required_headings:
+  - Data Model
+  - Storage
+  - Deployment target
+  - Security/privacy
+  gate_severity: red
+- id: adr
+  name: Architecture Decision Record
+  stage: architecture
+  template: adr.md
+  destination: docs/03_architecture/decisions/
+  multiple: true
+  min_count: 1
+  min_count_tiers:
+  - serious
+  - mission_critical
+  required_headings:
+  - Context
+  - Decision
+  - Consequences
+  gate_severity: orange
+- id: module_contract
+  name: Module Contract
+  stage: module_design
+  template: module_contract.md
+  destination: docs/04_modules/
+  multiple: true
+  min_count_tiers:
+  - serious
+  - mission_critical
+  required_headings:
+  - Responsibility
+  - Inputs
+  - Outputs
+  - Must not
+  gate_severity: red
+  applies_to:
+  - serious
+  - mission_critical
+  min_count: 1
+- id: vertical_slice
+  name: Vertical Slice
+  stage: vertical_slice
+  template: vertical_slice.md
+  destination: docs/05_vertical_slice/slice.md
+  required_headings:
+  - Out-of-scope
+  - Critical path
+  - Definition of done
+  - Manual fallback
+  - Effort estimate
+  gate_severity: red
+- id: go_criteria
+  name: GO Criteria Checklist
+  stage: go_no_go
+  template: GO_CRITERIA.md
+  destination: docs/00_meta/go-criteria.md
+  required_headings:
+  - Problem clarity
+  - Behavior clarity
+  - Shape clarity
+  - Module clarity
+  - Scope clarity
+  - AI readiness
+  - Infrastructure readiness
+  - Risk & failure readiness
+  gate_severity: red
+- id: premortem
+  name: Premortem
+  stage: go_no_go
+  template: premortem.md
+  destination: docs/00_meta/premortem.md
+  required_headings:
+  - Scenario
+  - Failure modes
+  - Most likely failure
+  - Mitigations / plan changes
+  - Residual risks accepted
+  gate_severity: orange
+  applies_to:
+  - serious
+  - mission_critical
+- id: planning_validation_report
+  name: Planning Validation Report
+  stage: go_no_go
+  template: planning_validation_report.md
+  destination: docs/00_meta/
+  multiple: true
+  gate_severity: red
+  required_headings:
+  - Candidate and scope
+  - Planning checks
+  - Decision
+- id: build_task
+  name: Build Task
+  stage: build
+  template: task.md
+  destination: docs/00_meta/tasks/
+  multiple: true
+  required_headings:
+  - Related use case
+  - Related module
+  - Expected outcome
+  - Status
+  gate_severity: orange
+- id: test_plan
+  name: Test Plan / QA Checklist
+  stage: verify
+  template: test_plan.md
+  destination: docs/06_verification/test-plan.md
+  required_headings:
+  - Critical flows
+  - Acceptance results
+  - Regression checklist
+  - Edge cases
+  gate_severity: red
+- id: production_readiness
+  name: Production Readiness Checklist
+  stage: harden
+  template: production_readiness.md
+  destination: docs/06_verification/production-readiness.md
+  required_headings:
+  - Error handling
+  - Secrets
+  - Logging/observability
+  - Rollback plan
+  - Env vars
+  - Backup/export
+  - Performance budget
+  gate_severity: red
+- id: release_notes
+  name: Release Notes
+  stage: ship
+  template: release_notes.md
+  destination: docs/07_release/release-notes.md
+  required_headings:
+  - What shipped
+  - Known limitations
+  - Rollback instructions
+  - Deployment notes
+  gate_severity: red
+- id: known_limitations
+  name: Known Limitations
+  stage: ship
+  template: known_limitations.md
+  destination: docs/07_release/known-limitations.md
+  required_headings:
+  - Known limitations
+  gate_severity: orange
+- id: retro
+  name: Methodology Retro
+  stage: ship
+  template: retro.md
+  destination: docs/00_meta/retro.md
+  required_headings:
+  - Outcome
+  - Estimate vs actual
+  - What the process caught
+  - What it missed
+  - The one rule to change
+  - Process overhead
+  - Review time and rework
+  - Rule exposure and consequences
+  gate_severity: orange
+- id: observation_entry
+  name: Observation Entry
+  stage: observe
+  template: observation_entry.md
+  destination: docs/08_observation/
+  multiple: true
+  required_headings:
+  - Feedback/bug/metric
+  - Action needed
+  - Next iteration candidate
+  gate_severity: orange
+- id: decision_log
+  name: Decision Log
+  stage: cross_cutting
+  template: decision_log_entry.md
+  destination: docs/decisions.md
+  append_only: true
+  gate_severity: orange
+- id: failure_log
+  name: Failure Log
+  stage: cross_cutting
+  template: failure_log_entry.md
+  destination: docs/failures.md
+  append_only: true
+  gate_severity: yellow
+- id: risk_log
+  name: Risk Radar
+  stage: cross_cutting
+  template: risk_entry.md
+  destination: docs/risks.md
+  append_only: true
+  gate_severity: orange
+- id: ai_session
+  name: AI Session Log
+  stage: cross_cutting
+  template: ai_session.md
+  destination: docs/99_ai-sessions/
+  multiple: true
+  gate_severity: red
+- id: infrastructure_note
+  name: Infrastructure Note
+  stage: architecture
+  template: infrastructure_note.md
+  destination: docs/03_architecture/infrastructure.md
+  required_headings:
+  - Deploy target
+  - Environments & env vars
+  - CI pipeline
+  - Secrets handling
+  - Backup & restore
+  - Monitoring & alerts
+  - Cost ceiling
+  gate_severity: orange
+  applies_to:
+  - slim
+  - serious
+  - mission_critical
+- id: agent_run
+  name: Agent Run Log
+  stage: cross_cutting
+  template: agent_run.md
+  destination: docs/09_agents/runs/
+  multiple: true
+  conditional: agent_workers
+  required_headings:
+  - Agent
+  - Task
+  - Scope
+  - Result
+  - Review verdict
+  gate_severity: red
+- id: loop_spec
+  name: Loop Spec
+  stage: cross_cutting
+  template: loop_spec.md
+  destination: docs/09_agents/loops/
+  multiple: true
+  conditional: loops
+  required_headings:
+  - Goal
+  - Stop conditions
+  - Per-pass verification
+  - Checkpoint cadence
+  - Context strategy
+  - Escalation triggers
+  - Kill switch
+  - Permissions
+  - Runlog and recovery
+  gate_severity: red
+- id: threat_model
+  name: Threat Model
+  stage: architecture
+  template: threat_model.md
+  destination: docs/00_meta/threat_model.md
+  required_headings:
+  - Assets and boundaries
+  - Abuse cases
+  - Controls and verification
+  gate_severity: red
+  applies_to:
+  - mission_critical
+- id: privacy_review
+  name: Privacy Review
+  stage: harden
+  template: privacy_review.md
+  destination: docs/00_meta/privacy_review.md
+  required_headings:
+  - Data inventory
+  - Collection and retention
+  - Access and deletion
+  - Review findings
+  gate_severity: red
+  applies_to:
+  - mission_critical
+- id: independent_review
+  name: Independent Release Review
+  stage: ship
+  template: independent_review.md
+  destination: docs/00_meta/independent_review.md
+  required_headings:
+  - Candidate and reviewer
+  - Evidence assessed
+  - Findings and verdict
+  gate_severity: red
+  applies_to:
+  - mission_critical
+- id: incident_response
+  name: Incident Response Plan
+  stage: harden
+  template: incident_response.md
+  destination: docs/00_meta/incident_response.md
+  required_headings:
+  - Owner and escalation
+  - Detection and containment
+  - Recovery and communication
+  - Exercise results
+  gate_severity: red
+  applies_to:
+  - mission_critical
+- id: loop_runlog
+  name: Loop Runlog
+  stage: cross_cutting
+  template: loop_runlog.md
+  destination: docs/09_agents/loops/
+  multiple: true
+  conditional: loops
+  required_headings:
+  - Run identity
+  - Pass events
+  - Termination
+  gate_severity: red
+  append_only: true
 gates:
   problem:
-    - { item: "problem/user/pain/outcome", severity: red }
-    - { item: "non-goals listed", severity: orange }
-    - { item: "effort estimate", severity: orange }
-    - { item: "current workaround", severity: yellow }
-    - { item: "why-now reasoning", severity: yellow }
+  - item: problem/user/pain/outcome
+    severity: red
+    id: problem-01
+  - item: non-goals listed
+    severity: orange
+    id: problem-02
+  - item: effort estimate
+    severity: orange
+    id: problem-03
+  - item: current workaround
+    severity: yellow
+    id: problem-04
+  - item: why-now reasoning
+    severity: yellow
+    id: problem-05
   spec:
-    - { item: ">=1 use case with acceptance criteria", severity: red }
-    - { item: "inputs/outputs for critical flow", severity: red }
-    - { item: "failure states for critical flow", severity: orange }
-    - { item: "edge cases listed", severity: orange }
-    - { item: "non-functional requirements", severity: yellow }
+  - item: '>=1 use case with acceptance criteria'
+    severity: red
+    id: spec-01
+  - item: inputs/outputs for critical flow
+    severity: red
+    id: spec-02
+  - item: failure states for critical flow
+    severity: orange
+    id: spec-03
+  - item: edge cases listed
+    severity: orange
+    id: spec-04
+  - item: non-functional requirements
+    severity: yellow
+    id: spec-05
   architecture:
-    - { item: "data model exists", severity: red }
-    - { item: "storage decision made", severity: red }
-    - { item: "deployment target named", severity: red }
-    - { item: "external deps isolated (adapters)", severity: orange }
-    - { item: "security/privacy notes", severity: orange }
-    - { item: "decision log started", severity: orange }
-    - { item: "diagrams where useful", severity: yellow }
-    - { item: "infrastructure note complete", severity: orange, override_severity: { serious: red, mission_critical: red } }
+  - item: data model exists
+    severity: red
+    id: architecture-01
+  - item: storage decision made
+    severity: red
+    id: architecture-02
+  - item: deployment target named
+    severity: red
+    id: architecture-03
+  - item: external deps isolated (adapters)
+    severity: orange
+    id: architecture-04
+  - item: security/privacy notes
+    severity: orange
+    id: architecture-05
+  - item: decision log started
+    severity: orange
+    id: architecture-06
+  - item: diagrams where useful
+    severity: yellow
+    id: architecture-07
+  - item: infrastructure note complete
+    severity: orange
+    override_severity:
+      serious: red
+      mission_critical: red
+    id: architecture-08
+  - id: architecture-09
+    item: threat model reviewed
+    severity: red
+    applies_to:
+    - mission_critical
   module_design:
-    - { item: "module list + responsibilities", severity: red }
-    - { item: "inputs/outputs per critical module", severity: red }
-    - { item: "dependencies mapped", severity: orange }
-    - { item: "failure behavior per critical module", severity: orange }
-    - { item: "shared types declared", severity: yellow }
+  - item: module list + responsibilities
+    severity: red
+    id: module_design-01
+  - item: inputs/outputs per critical module
+    severity: red
+    id: module_design-02
+  - item: dependencies mapped
+    severity: orange
+    id: module_design-03
+  - item: failure behavior per critical module
+    severity: orange
+    id: module_design-04
+  - item: shared types declared
+    severity: yellow
+    id: module_design-05
   vertical_slice:
-    - { item: "scope written", severity: red }
-    - { item: "out-of-scope written", severity: red }
-    - { item: "definition of done written", severity: red }
-    - { item: "critical path identified", severity: orange }
-    - { item: "effort estimate", severity: orange }
-    - { item: "manual fallback noted", severity: yellow }
+  - item: scope written
+    severity: red
+    id: vertical_slice-01
+  - item: out-of-scope written
+    severity: red
+    id: vertical_slice-02
+  - item: definition of done written
+    severity: red
+    id: vertical_slice-03
+  - item: critical path identified
+    severity: orange
+    id: vertical_slice-04
+  - item: effort estimate
+    severity: orange
+    id: vertical_slice-05
+  - item: manual fallback noted
+    severity: yellow
+    id: vertical_slice-06
   verify:
-    # W2: these two red gate items are now evidence-backed by the merge gate — no
-    # new required gates were added (the methodology is shared); the dashboard
-    # supplies real evidence for the items that already existed.
-    - { item: "critical flows tested", severity: red, evidence: "merge gate 2C — the task's verify_command runs in the worktree before merge; non-zero blocks by default (override logged)" }
-    - { item: "acceptance criteria checked", severity: red, evidence: "merge gate 2D — per-criterion verify-qa conformance trace (MET/NOT_MET/UNTESTABLE); a red NOT_MET is an ack-required merge blocker" }
-    - { item: "edge cases reviewed", severity: orange }
-    - { item: "failed tasks resolved or accepted", severity: orange }
-    - { item: "regression checklist", severity: yellow }
-    - { item: "no new cross-layer imports", severity: orange }
-    - { item: "module contracts still accurate after build", severity: orange }
-    - { item: "file-size ballooning reviewed", severity: yellow }
-    - { item: "spec-delta: behavior changes reflected in spec", severity: orange }
+  - item: critical flows tested
+    severity: red
+    evidence: Command, exit code, result location and tested revision recorded; a failed critical-flow
+      check blocks advancement without override.
+    id: verify-01
+  - item: acceptance criteria checked
+    severity: red
+    evidence: Each criterion has an ID, check, result and revision. NOT_MET or UNTESTABLE on a required
+      critical criterion blocks advancement without override.
+    id: verify-02
+  - item: edge cases reviewed
+    severity: orange
+    id: verify-03
+  - item: failed tasks resolved or accepted
+    severity: orange
+    id: verify-04
+  - item: regression checklist
+    severity: yellow
+    id: verify-05
+  - item: no new cross-layer imports
+    severity: orange
+    id: verify-06
+  - item: module contracts still accurate after build
+    severity: orange
+    id: verify-07
+  - item: file-size ballooning reviewed
+    severity: yellow
+    id: verify-08
+  - item: 'spec-delta: behavior changes reflected in spec'
+    severity: orange
+    id: verify-09
   harden:
-    - { item: "error handling for critical flows", severity: red }
-    - { item: "secrets management", severity: red }
-    - { item: "rollback plan", severity: red }
-    - { item: "logging sufficient to debug", severity: orange }
-    - { item: "env variables documented", severity: orange }
-    - { item: "backup/export path", severity: orange }
-    - { item: "privacy review", severity: orange, override_severity: { mission_critical: red } }
-    - { item: "performance sanity check", severity: yellow }
-    - { item: "CI run link recorded for release commit", severity: yellow, override_severity: { serious: red, mission_critical: red } }
-    - { item: "restore test date + result recorded", severity: yellow, override_severity: { serious: orange, mission_critical: red } }
-    - { item: "monitoring/alert endpoint recorded", severity: yellow, override_severity: { serious: orange, mission_critical: orange } }
+  - item: error handling for critical flows
+    severity: red
+    id: harden-01
+  - item: secrets management
+    severity: red
+    id: harden-02
+  - item: rollback plan
+    severity: red
+    id: harden-03
+  - item: logging sufficient to debug
+    severity: orange
+    id: harden-04
+  - item: env variables documented
+    severity: orange
+    id: harden-05
+  - item: backup/export path
+    severity: orange
+    id: harden-06
+  - item: privacy review
+    severity: orange
+    override_severity:
+      mission_critical: red
+    id: harden-07
+  - item: performance sanity check
+    severity: yellow
+    id: harden-08
+  - item: CI run link recorded for release commit
+    severity: yellow
+    override_severity:
+      serious: red
+      mission_critical: red
+    id: harden-09
+  - item: restore test date + result recorded
+    severity: yellow
+    override_severity:
+      serious: red
+      mission_critical: red
+    id: harden-10
+  - item: monitoring/alert endpoint recorded
+    severity: yellow
+    override_severity:
+      serious: red
+      mission_critical: red
+    id: harden-11
+  - id: harden-12
+    item: incident response plan reviewed
+    severity: red
+    applies_to:
+    - mission_critical
   ship:
-    - { item: "release notes", severity: red }
-    - { item: "deployment record", severity: red }
-    - { item: "rollback instructions", severity: red }
-    - { item: "known limitations", severity: orange }
-    - { item: "observation plan", severity: yellow }
-
-# ----------------------------------------------------------------------------
-# PLANNING VALIDATION GATE — the automated GO/NO-GO roll-up (v3 §6.3).
-# ----------------------------------------------------------------------------
+  - item: release notes
+    severity: red
+    id: ship-01
+  - item: deployment record
+    severity: red
+    id: ship-02
+  - item: rollback instructions
+    severity: red
+    id: ship-03
+  - item: known limitations
+    severity: orange
+    id: ship-04
+  - item: observation plan
+    severity: yellow
+    id: ship-05
+  - id: ship-06
+    item: retro recorded
+    severity: orange
+  - id: ship-07
+    item: independent review recorded for release candidate
+    severity: red
+    applies_to:
+    - mission_critical
 planning_validation_gate:
-  fires_on: "enter_build"
+  fires_on: enter_build
   checks:
-    - { id: stage_completion, severity: red }
-    - { id: gate_rollup, severity: red }
-    - { id: skeleton_task_rollup, severity: red }
-    - { id: custom_task_rollup, severity: orange }
-    - { id: ai_session_review_rollup, severity: red }
-    - { id: artifact_review_rollup, severity: red }
-    - { id: cross_stage_consistency, severity: red, slim_severity: orange }
-    - { id: risk_check, severity: red }
-    - { id: decision_log_presence, severity: orange, min_decisions: 3 }
-    - { id: dod_planning_composed, severity: red }
-    - { id: tier_specific, severity: red }
-    - { id: agent_run_review_rollup, severity: red }  # advisory at runtime until phase-2 implements it
-  report_destination: "docs/00_meta/"
-
-# ----------------------------------------------------------------------------
-# OVERRIDE mechanics
-# ----------------------------------------------------------------------------
+  - id: stage_completion
+    severity: red
+  - id: gate_rollup
+    severity: red
+  - id: skeleton_task_rollup
+    severity: red
+  - id: custom_task_rollup
+    severity: orange
+  - id: ai_session_review_rollup
+    severity: red
+  - id: artifact_review_rollup
+    severity: red
+  - id: cross_stage_consistency
+    severity: red
+    slim_severity: orange
+  - id: risk_check
+    severity: red
+  - id: decision_log_presence
+    severity: orange
+  - id: dod_planning_composed
+    severity: red
+  - id: tier_specific
+    severity: red
+  - id: agent_run_review_rollup
+    severity: red
+  report_destination: docs/00_meta/
+  execution: manual
 override:
   default_expiry_days: 14
   red_overridable: false
-  log_to: "docs/decisions.md"
-
-# ----------------------------------------------------------------------------
-# HEALTH SCORE — stage-aware weights (v3 §13). Columns sum to 100.
-# Category scores are 0-10; weighted sum / 10 = 0-100 health.
-# ----------------------------------------------------------------------------
-health_weights:
-  columns: [capture_problem, spec, arch_module, vertical_slice, build, verify_harden, ship_observe]
-  categories:
-    problem_clarity:        [50, 25, 10, 10, 5, 5, 5]
-    spec_completeness:      [30, 50, 20, 15, 10, 5, 5]
-    architecture_readiness: [10, 15, 35, 15, 10, 5, 5]
-    module_boundary:        [0, 5, 25, 15, 15, 5, 5]
-    task_execution:         [0, 0, 0, 25, 35, 15, 10]
-    failed_task_recovery:   [5, 5, 5, 10, 15, 15, 15]
-    verification_readiness: [0, 0, 0, 5, 5, 25, 15]
-    production_hardening:    [0, 0, 0, 0, 5, 20, 20]
-    shipping_readiness:     [5, 0, 5, 5, 0, 5, 20]
-
-# ----------------------------------------------------------------------------
-# RISK RADAR (v3 §7)
-# ----------------------------------------------------------------------------
+  log_to: docs/decisions.md
+  slim_log_to: log.md#Decisions
 risk_radar:
   accepted_requires_expiry: true
   risks:
-    - { name: "Missing Spec", default_severity: high }
-    - { name: "Spaghetti Code", default_severity: high }
-    - { name: "Data Model", default_severity: high }
-    - { name: "Security", default_severity: medium, critical_for: [mission_critical] }
-    - { name: "Privacy", default_severity: medium, critical_for: [mission_critical] }
-    - { name: "AI Hallucination", default_severity: medium }
-    - { name: "AI Context-Rot", default_severity: medium }
-    - { name: "Scope Creep", default_severity: medium }
-    - { name: "Dependency", default_severity: medium }
-    - { name: "Testing", default_severity: medium }
-    - { name: "Deployment", default_severity: medium }
-    - { name: "Maintainability", default_severity: medium }
-    - { name: "Time-Overrun", default_severity: medium }
-    - { name: "Performance", default_severity: low }
-    - { name: "Overengineering", default_severity: low }
-    - { name: "Underengineering", default_severity: low }
-    - { name: "Agent Collision", default_severity: medium }
-    - { name: "Runaway Loop", default_severity: medium }
-
-# ----------------------------------------------------------------------------
-# BACKTRACK RULES (v3 §8) — failure category -> suggested target stage
-# ----------------------------------------------------------------------------
+  - name: Missing Spec
+    default_severity: high
+  - name: Spaghetti Code
+    default_severity: high
+  - name: Data Model
+    default_severity: high
+  - name: Security
+    default_severity: medium
+    critical_for:
+    - mission_critical
+  - name: Privacy
+    default_severity: medium
+    critical_for:
+    - mission_critical
+  - name: AI Hallucination
+    default_severity: medium
+  - name: AI Context-Rot
+    default_severity: medium
+  - name: Scope Creep
+    default_severity: medium
+  - name: Dependency
+    default_severity: medium
+  - name: Testing
+    default_severity: medium
+  - name: Deployment
+    default_severity: medium
+  - name: Maintainability
+    default_severity: medium
+  - name: Time-Overrun
+    default_severity: medium
+  - name: Performance
+    default_severity: low
+  - name: Overengineering
+    default_severity: low
+  - name: Underengineering
+    default_severity: low
+  - name: Agent Collision
+    default_severity: medium
+  - name: Runaway Loop
+    default_severity: medium
 backtrack_rules:
   failed_task: current_stage
   failed_test: build
@@ -530,26 +822,53 @@ backtrack_rules:
   failed_requirement: spec
   failed_agent_run: build
   failed_loop: build
-
-# ----------------------------------------------------------------------------
-# DASHBOARD IA — every section the dashboard renders. The integral-coverage
-# self-check asserts: every artifact.section value resolves to a section here,
-# and every artifact has a view + (template or generated) scaffold path.
-# ----------------------------------------------------------------------------
-dashboard:
+release: '4.6'
+policy:
+  red_overridable: false
+  decision_log_check: presence
+  review_cap: 2
+  evidence_revision_required: true
+slim_profile:
+  files:
+    brief.md:
+    - Problem
+    - Scope and acceptance criteria
+    - Architecture and infrastructure
+    - GO decision
+    checks.md:
+    - Verification evidence
+    - Production readiness
+    - Release and rollback
+    - Observation
+    log.md:
+    - Decisions
+    - Risks and failures
+    - Tasks and AI review
+    - Retro
+  # Where each Slim-applicable artifact lives: `<file>#<heading>`, or `separate` when the
+  # record stays a standalone file at its manifest destination (conditional worker/loop records).
   sections:
-    - { id: mission_control, name: "Mission Control" }
-    - { id: lifecycle, name: "Project / Lifecycle" }
-    - { id: go_no_go, name: "GO / NO-GO" }
-    - { id: spec_center, name: "Spec Center" }
-    - { id: architecture_center, name: "Architecture Center" }
-    - { id: module_map, name: "Module Map" }
-    - { id: task_radar, name: "Task Radar" }
-    - { id: ai_sessions, name: "AI Sessions" }
-    - { id: verify_harden, name: "Verify / Harden" }
-    - { id: ship_readiness, name: "Ship Readiness" }
-    - { id: risk_radar, name: "Risk Radar" }
-    - { id: failure_log, name: "Failure Log" }
-    - { id: decision_log, name: "Decision Log" }
-    - { id: observe, name: "Observe" }
-    - { id: agent_ops, name: "Agent Ops" }
+    raw_idea_note: brief.md#Problem
+    problem_brief: brief.md#Problem
+    product_spec: brief.md#Scope and acceptance criteria
+    use_case: brief.md#Scope and acceptance criteria
+    vertical_slice: brief.md#Scope and acceptance criteria
+    architecture_note: brief.md#Architecture and infrastructure
+    infrastructure_note: brief.md#Architecture and infrastructure
+    go_criteria: brief.md#GO decision
+    planning_validation_report: brief.md#GO decision
+    test_plan: checks.md#Verification evidence
+    production_readiness: checks.md#Production readiness
+    release_notes: checks.md#Release and rollback
+    known_limitations: checks.md#Release and rollback
+    observation_entry: checks.md#Observation
+    adr: log.md#Decisions
+    decision_log: log.md#Decisions
+    risk_log: log.md#Risks and failures
+    failure_log: log.md#Risks and failures
+    build_task: log.md#Tasks and AI review
+    ai_session: log.md#Tasks and AI review
+    retro: log.md#Retro
+    agent_run: separate
+    loop_spec: separate
+    loop_runlog: separate
