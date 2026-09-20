@@ -9,6 +9,14 @@
 - Route small changes by risk, budget review time, and evaluate rules by exposure and consequences.
 - Remove dashboard metadata, health scores and claims of unavailable automatic enforcement.
 - Add an optional workflow proposal; proposals do not change adopted policy.
+- Align manifest with prose: Spikes never reach SHIP (`ship.per_tier.spike: skipped`); the Serious
+  minimums *tested restore* (harden-10) and *uptime monitoring* (harden-11) are red for Serious+.
+- Add `slim_profile.sections` (artifact → Slim section) and `override.slim_log_to`; the validator
+  checks both against the artifact manifest.
+- Validator: report every failing resource by name instead of stopping at the first; ignore
+  headings and links inside code spans, tilde/indented fences and HTML comments; check titled
+  and nested links; verify prompt/agent roster agreement, Slim planning severities and roster
+  schema version; resolve Slim templates through `templates_dir`.
 
 Migration: use `SPEC-GATED-MODULAR-DELIVERY-v4.6.md`. The YAML filename remains
 `methodology.v4.yaml` for schema continuity, with `release: '4.6'`. Consumers of removed

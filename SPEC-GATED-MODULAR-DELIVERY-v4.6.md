@@ -80,6 +80,10 @@ applicable gates remain required.
 - `checks.md`: acceptance evidence, readiness, release/rollback and observation.
 - `log.md`: decisions, risks/failures, tasks/AI review and retrospective.
 
+`slim_profile.sections` in the YAML maps each artifact that applies to Slim to the section
+that carries it, or marks it `separate`. Orange overrides in Slim are recorded in `log.md` under Decisions
+(`override.slim_log_to`), not in a separate decisions file.
+
 Keep only the relevant module detail; Slim merges architecture and module design.
 Agent runs and loop specifications are conditional additions when those capabilities
 are used. Larger projects copy the full [templates](templates) to manifest destinations.

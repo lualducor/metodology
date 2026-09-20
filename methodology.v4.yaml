@@ -143,7 +143,7 @@ stages:
   backtrack: harden
   next: observe
   per_tier:
-    spike: informal
+    spike: skipped
     slim: required
     serious: required
     mission_critical: required
@@ -695,14 +695,14 @@ gates:
   - item: restore test date + result recorded
     severity: yellow
     override_severity:
-      serious: orange
+      serious: red
       mission_critical: red
     id: harden-10
   - item: monitoring/alert endpoint recorded
     severity: yellow
     override_severity:
-      serious: orange
-      mission_critical: orange
+      serious: red
+      mission_critical: red
     id: harden-11
   - id: harden-12
     item: incident response plan reviewed
@@ -767,6 +767,7 @@ override:
   default_expiry_days: 14
   red_overridable: false
   log_to: docs/decisions.md
+  slim_log_to: log.md#Decisions
 risk_radar:
   accepted_requires_expiry: true
   risks:
@@ -844,3 +845,30 @@ slim_profile:
     - Risks and failures
     - Tasks and AI review
     - Retro
+  # Where each Slim-applicable artifact lives: `<file>#<heading>`, or `separate` when the
+  # record stays a standalone file at its manifest destination (conditional worker/loop records).
+  sections:
+    raw_idea_note: brief.md#Problem
+    problem_brief: brief.md#Problem
+    product_spec: brief.md#Scope and acceptance criteria
+    use_case: brief.md#Scope and acceptance criteria
+    vertical_slice: brief.md#Scope and acceptance criteria
+    architecture_note: brief.md#Architecture and infrastructure
+    infrastructure_note: brief.md#Architecture and infrastructure
+    go_criteria: brief.md#GO decision
+    planning_validation_report: brief.md#GO decision
+    test_plan: checks.md#Verification evidence
+    production_readiness: checks.md#Production readiness
+    release_notes: checks.md#Release and rollback
+    known_limitations: checks.md#Release and rollback
+    observation_entry: checks.md#Observation
+    adr: log.md#Decisions
+    decision_log: log.md#Decisions
+    risk_log: log.md#Risks and failures
+    failure_log: log.md#Risks and failures
+    build_task: log.md#Tasks and AI review
+    ai_session: log.md#Tasks and AI review
+    retro: log.md#Retro
+    agent_run: separate
+    loop_spec: separate
+    loop_runlog: separate
